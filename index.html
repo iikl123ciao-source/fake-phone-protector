@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Phone Protector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .iphone-frame {
+            width: 375px;
+            height: 812px;
+            background-color: #fff;
+            border-radius: 40px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            border: 5px solid #000;
+        }
+
+        .screen {
+            height: calc(100% - 20px);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .app-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .status-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .status-dot {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            border-radius: 50%;
+            transition: background-color 0.3s ease-in-out;
+            margin-bottom: 10px;
+        }
+
+        .status-text {
+            font-size: 1.25rem;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        button {
+            padding: 12px 24px;
+            border-radius: 9999px;
+            font-weight: bold;
+            transition: transform 0.1s ease-in-out;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .start-btn {
+            background-color: #4CAF50;
+            color: white;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .stop-btn {
+            background-color: #ef4444;
+            color: white;
+            display: none;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="iphone-frame">
+        <div class="screen">
+            <!-- App Title -->
+            <div class="app-title">My Phone Protector</div>
+
+            <!-- Status Section -->
+            <div class="status-section">
+                <div id="status-dot" class="status-dot"></div>
+                <span id="status-text" class="status-text">Servizio non attivo</span>
+            </div>
+
+            <!-- Buttons -->
+            <div>
+                <button id="start-button" class="start-btn">Avvia Host</button>
+                <button id="stop-button" class="stop-btn">Ferma Host</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let serviceRunning = false;
+        
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const startButton = document.getElementById('start-button');
+        const stopButton = document.getElementById('stop-button');
+        const storageKey = 'my-phone-protector-status';
+
+        function updateUI(isRunning) {
+            serviceRunning = isRunning;
+            if (serviceRunning) {
+                statusDot.style.backgroundColor = 'green';
+                statusText.innerText = 'Servizio attivo';
+                startButton.style.display = 'none';
+                stopButton.style.display = 'block';
+            } else {
+                statusDot.style.backgroundColor = 'red';
+                statusText.innerText = 'Servizio non attivo';
+                startButton.style.display = 'block';
+                stopButton.style.display = 'none';
+            }
+        }
+
+        function startService() {
+            // Salva lo stato nel localStorage
+            localStorage.setItem(storageKey, 'active');
+            updateUI(true);
+        }
+
+        function stopService() {
+            // Rimuove lo stato dal localStorage
+            localStorage.removeItem(storageKey);
+            updateUI(false);
+        }
+
+        // Controlla lo stato all'avvio della pagina
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedStatus = localStorage.getItem(storageKey);
+            if (savedStatus === 'active') {
+                updateUI(true);
+            } else {
+                updateUI(false);
+            }
+        });
+
+        startButton.addEventListener('click', startService);
+        stopButton.addEventListener('click', stopService);
+    </script>
+</body>
+</html>
