@@ -50,6 +50,7 @@
             flex-direction: column;
             align-items: center;
             margin-bottom: 30px;
+            position: relative;
         }
 
         .status-dot {
@@ -57,8 +58,24 @@
             height: 30px;
             background-color: red;
             border-radius: 50%;
-            transition: background-color 0.3s ease-in-out;
+            transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
             margin-bottom: 10px;
+        }
+
+        .status-dot.active {
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 20px rgba(76, 175, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
         }
 
         .status-text {
@@ -81,12 +98,44 @@
             color: white;
             display: block;
             margin-bottom: 10px;
+            transition: opacity 0.3s ease-in-out;
         }
         
         .stop-btn {
             background-color: #ef4444;
             color: white;
             display: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .loading-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+            display: inline-block;
+            margin: 0 2px;
+            opacity: 0;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            40% {
+                transform: scale(1.0);
+                opacity: 1;
+            }
         }
 
         button:active {
@@ -105,6 +154,11 @@
             <div class="status-section">
                 <div id="status-dot" class="status-dot"></div>
                 <span id="status-text" class="status-text">Servizio non attivo</span>
+                <div id="loading-dots" class="flex justify-center mt-4">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
             </div>
 
             <!-- Buttons -->
@@ -122,36 +176,47 @@
         const statusText = document.getElementById('status-text');
         const startButton = document.getElementById('start-button');
         const stopButton = document.getElementById('stop-button');
+        const loadingDots = document.getElementById('loading-dots');
         const storageKey = 'my-phone-protector-status';
 
         function updateUI(isRunning) {
             serviceRunning = isRunning;
             if (serviceRunning) {
                 statusDot.style.backgroundColor = 'green';
+                statusDot.classList.add('active');
                 statusText.innerText = 'Servizio attivo';
                 startButton.style.display = 'none';
                 stopButton.style.display = 'block';
+                loadingDots.style.display = 'none';
             } else {
                 statusDot.style.backgroundColor = 'red';
+                statusDot.classList.remove('active');
                 statusText.innerText = 'Servizio non attivo';
                 startButton.style.display = 'block';
                 stopButton.style.display = 'none';
+                loadingDots.style.display = 'none';
             }
         }
 
         function startService() {
-            // Salva lo stato nel localStorage
-            localStorage.setItem(storageKey, 'active');
-            updateUI(true);
+            if (serviceRunning) return;
+            startButton.style.opacity = '0';
+            loadingDots.style.display = 'flex';
+            statusText.innerText = 'Avvio in corso...';
+            
+            setTimeout(() => {
+                localStorage.setItem(storageKey, 'active');
+                updateUI(true);
+                startButton.style.opacity = '1';
+            }, 2000); // Simula un ritardo di 2 secondi
         }
 
         function stopService() {
-            // Rimuove lo stato dal localStorage
+            if (!serviceRunning) return;
             localStorage.removeItem(storageKey);
             updateUI(false);
         }
 
-        // Controlla lo stato all'avvio della pagina
         document.addEventListener('DOMContentLoaded', () => {
             const savedStatus = localStorage.getItem(storageKey);
             if (savedStatus === 'active') {
@@ -166,3 +231,5 @@
     </script>
 </body>
 </html>
+
+
