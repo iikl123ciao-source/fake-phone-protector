@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Phone Protector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .iphone-frame {
+            background-color: #1a1a1a;
+            width: 375px;
+            height: 667px;
+            border-radius: 40px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            margin-bottom: 40px;
+        }
+        .header-bar span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .status-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            margin-top: 100px;
+        }
+        .status-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #E74C3C;
+            transition: background-color 0.5s ease-in-out;
+        }
+        .status-dot.active {
+            background-color: #2ECC71;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .status-text {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        .controls {
+            margin-top: auto;
+            display: flex;
+            gap: 20px;
+        }
+        .control-btn {
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        .start-btn {
+            background-color: #3498db;
+            color: #fff;
+        }
+        .stop-btn {
+            background-color: #e74c3c;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="iphone-frame">
+    <div class="header-bar">
+        <span>9:41 AM</span>
+        <span>Wi-Fi</span>
+    </div>
+
+    <div class="status-section">
+        <div id="status-dot" class="status-dot"></div>
+        <div id="status-text" class="status-text">Analisi non attiva</div>
+    </div>
+
+    <div class="controls">
+        <div id="start-btn" class="control-btn start-btn">Avvia Analisi</div>
+        <div id="stop-btn" class="control-btn stop-btn hidden">Ferma Analisi</div>
+    </div>
+</div>
+
+<script>
+    const startBtn = document.getElementById('start-btn');
+    const stopBtn = document.getElementById('stop-btn');
+    const statusDot = document.getElementById('status-dot');
+    const statusText = document.getElementById('status-text');
+
+    const STORAGE_KEY = 'hostActive';
+    let notificationSimulationTimeout;
+
+    // TODO: INCOLLA QUI L'URL DEL TUO COMANDO RAPIDO
+    // Segui la guida nel file allegato per ottenere l'URL.
+    const WEBHOOK_URL = 'https://maker.ifttt.com/trigger/MY_EVENT/with/key/MY_KEY';
+
+    const randomProtectionMessages = [
+        "Protezione attiva: il tuo numero è sicuro.",
+        "Analisi in corso: nessun rischio rilevato.",
+        "Il dispositivo è protetto da tentativi di spoofing.",
+        "Analisi di rete completata: nessuna minaccia trovata."
+    ];
+
+    // Funzione che invia il messaggio di notifica al comando rapido.
+    function sendNotificationToShortcut(message) {
+        if (!WEBHOOK_URL) {
+            console.error("WEBHOOK_URL non configurato. Le notifiche push non funzioneranno.");
+            return;
+        }
+
+        fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.error('Errore nell\'invio del webhook. Controlla l\'URL.');
+            }
+        })
+        .catch(error => {
+            console.error('Errore nella richiesta fetch:', error);
+        });
+    }
+
+    // Funzione per aggiornare l'interfaccia utente in base allo stato.
+    function updateUI(isActive) {
+        if (isActive) {
+            statusDot.classList.add('active');
+            statusText.textContent = "Analisi in corso";
+            startBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+        } else {
+            statusDot.classList.remove('active');
+            statusText.textContent = "Analisi non attiva";
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+        }
+    }
+
+    // Funzione che simula l'invio di notifiche a intervalli casuali.
+    function startNotificationSimulation() {
+        if (localStorage.getItem(STORAGE_KEY) === 'true') {
+            const message = randomProtectionMessages[Math.floor(Math.random() * randomProtectionMessages.length)];
+            
+            // Invia la notifica push tramite il comando rapido.
+            sendNotificationToShortcut(message);
+
+            const randomDelay = Math.random() * (20000 - 5000) + 5000;
+            notificationSimulationTimeout = setTimeout(startNotificationSimulation, randomDelay);
+        }
+    }
+
+    startBtn.addEventListener('click', () => {
+        localStorage.setItem(STORAGE_KEY, 'true');
+        updateUI(true);
+        startNotificationSimulation();
+    });
+
+    stopBtn.addEventListener('click', () => {
+        localStorage.setItem(STORAGE_KEY, 'false');
+        updateUI(false);
+        clearTimeout(notificationSimulationTimeout);
+    });
+
+    window.addEventListener('load', () => {
+        const isActive = localStorage.getItem(STORAGE_KEY) === 'true';
+        updateUI(isActive);
+        if (isActive) {
+            startNotificationSimulation();
+        }
+    });
+</script>
+
+</body>
+</html>
